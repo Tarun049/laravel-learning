@@ -1,11 +1,16 @@
 <?php
 
 use App\Http\Controllers\FormController;
+use App\Http\Controllers\OpenAIController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Learning;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Membercontroller;
+use App\Http\Controllers\LoginController;
+use App\Http\Controllers\TestingComtroller;
+use App\Http\Controllers\ArticleGeneratorController;
+use App\Http\Controllers\BotManController;
 
 
 /*
@@ -22,6 +27,8 @@ use App\Http\Controllers\Membercontroller;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::view('/user/member-list', 'list');
 
 Route::get('/custom-register/{id}', [UserController::class, 'testing'] )->name('custom_route');;
 
@@ -59,11 +66,12 @@ Route::get("/api/html", [UserController::class, "getExternalApi"]);
 
 
 // route for request http methods
-Route::post("request/form", [UserController::class, "testRequest"]);
+Route::post("request/form", [UserController::class, "testRequest"])->name('register_user');
 
 // Route::view("userProfile", 'userProfile');
-// Route::view("login/request", 'userForm');
-Route::get('login/request', function () {
+// Route::view("register/request", 'userForm');
+
+Route::get('register/request', function () {
     if( session()->has('user_email') ){
         return redirect('userProfile');
     }
@@ -92,19 +100,51 @@ Route::view('/flashSession', 'flashSession');
 Route::post('/flash/session',[UserController::class, "flash_session"])->name("flashSession");
 
 //routes to show list using model
-Route::get("/user/member-list", [Membercontroller::class, "showList"]);
+Route::get("/user/member-list", [Membercontroller::class, "showList"])->name('members_list')->middleware('userAuth');
 
 //route to delete the users
 Route::get("/delete/member-user/{user_id}", [Membercontroller::class, "deleteListUser"]);
 
 //route to update the users
-Route::get("/update/member-user/{user_id}", [Membercontroller::class, "getUpdateListUser"]);
+Route::get("/update/member-user/{user_id}", [Membercontroller::class, "getUpdateListUser"])->name('get_update_user')->middleware('userAuth');
 
 
 //route to update the users
-Route::post("update/member-user", [Membercontroller::class, "UpdateListUser"]);
+Route::post("update/member-user", [Membercontroller::class, "UpdateListUser"])->name('update_user');
 
 //route to learn query builder
-Route::get("/query-builder", [Membercontroller::class, "queryBuilder"]);
+Route::get("/query-builder", [Membercontroller::class, "queryBuilder"])->middleware('auth');
+
+// route for custom authentication
+// Route::view("/login/request", "userLogin");
+Route::post("/user/login/request", [LoginController::class, "userLoginAuth"])->name('login_user');
+Route::get('/login/request', function () {
+    if( session()->has('user_email') ){
+        return redirect('userProfile');
+    }
+    return view('userLogin');
+});
+
+
+
+// routes for openAi gpt-3
+Route::get('/write', function () {
+    $title = '';
+    $content = '';
+    return view('writer', compact('title', 'content'));
+});
+Route::post('/write/generate', [ArticleGeneratorController::class, 'index']);
+
+
+
+// routes for open ai chatbot
+
+Route::get('open-ai', [OpenAIController::class, "chatOpenAi"]);
+
+Route::match(['get', 'post'], 'botman', [BotManController::class, 'handle']);
+
+// Route::Livewire("test-livewire", 'counter');
+
+Route::post('/ajax/response', [Membercontroller::class, "getAjaxData"]);
 
 require __DIR__ . '/auth.php';

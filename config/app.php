@@ -1,5 +1,6 @@
 <?php
 
+use App\Providers\GeneratorOpenAIService;
 use Illuminate\Support\Facades\Facade;
 
 return [
@@ -16,6 +17,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
+    'openai_api_key' => env('OPENAI_API_KEY'),
 
     /*
     |--------------------------------------------------------------------------

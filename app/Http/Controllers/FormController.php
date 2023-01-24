@@ -13,6 +13,7 @@ class FormController extends Controller
             'name' => 'required',
             'email' => 'required',
             'phone' => 'required | min:10',
+            'image' => 'required',
             'password' => 'required | min:5',
             'confirm-password' => 'required | min:5',
         ]);

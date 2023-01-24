@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Member;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\View;
 
 
 class Membercontroller extends Controller
@@ -13,10 +14,11 @@ class Membercontroller extends Controller
     //
     function showList() {
 
-        $data = Member::all();
+        // $data = Member::all();
         // $data = Member::paginate(2);
 
-        return view('list', ['users' => $data]);
+        // return view('list', ['users' => $data]);
+        // return view('userLogin', ['users' => $data]);
     }
 
     function deleteListUser($user_id) {
@@ -33,14 +35,34 @@ class Membercontroller extends Controller
 
     function UpdateListUser(Request $request){
 
-        $data = Member::find($request->user_id);
-        $data->name = $request->name;
-        $data->email = $request->email;
-        $data->phone = $request->phone;
-        $data->password = Hash::make($request->password);
-        $data->save();
+        // $email = $request->email;
+        $validate = $request->validate([
+            'name' => 'required',
+            'email' => 'required',
+            'phone' => 'required | min:10',
+            'password' => 'required | min:5',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
 
-        return redirect("/user/member-list");
+        if( $validate ) {
+
+
+            // $request->session()->put('user_email', $email);
+            $imageName = time().'.'.$request->image->extension();
+            $request->image->move(public_path('img'), $imageName);
+
+            $data = Member::find($request->user_id);
+            $data->name = $request->name;
+            $data->email = $request->email;
+            $data->phone = $request->phone;
+            $data->image = $imageName;
+            $data->password = Hash::make($request->password);
+            $data->save();
+
+            return redirect("/user/member-list");
+        } else {
+            echo "validate error";
+        }
     }
 
     function queryBuilder(){
@@ -60,5 +82,10 @@ class Membercontroller extends Controller
 
         $data = DB::table('members')->max('id');
         return $data;
+    }
+
+    // function to get data from ajax
+    function getAjaxData(Request $req) {
+        return $req;
     }
 }
